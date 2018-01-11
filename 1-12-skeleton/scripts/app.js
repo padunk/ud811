@@ -40,18 +40,14 @@
     },
     {
       temp: { day: 7., min: 7, max: 17.12 },
-      weather: [{ main: 'Mist' }]
-    },
-    {
-      temp: { day: 7., min: 7, max: 17.12 },
       weather: [{ main: 'Thunderstorm' }]
-    }
+    },
     ]
   };
 
   var weatherAPIUrlBase = 'http://api.openweathermap.org/data/2.5/forecast/daily?q=';
   var dayCount = '&cnt=8&units=metric';
-  var appId = '&appid=';
+  var appId = '&appid=1051546b60dcda58e3253c6ff3b96ba2';
 
   var app = {
     isLoading: true,
@@ -90,6 +86,7 @@
     var label = selected.textContent;
     app.getForecast(key, label);
     app.selectedCities.push({key: key, label: label});
+    app.saveCities();
     app.toggleAddDialog(false);
   });
 
@@ -147,7 +144,7 @@
     var today = new Date();
     today = today.getDay();
 
-    for (var i = 1; i < 9; i++) {
+    for (var i = 1; i < 8; i++) {
       var nextDay = nextDays[i-1];
       var iconClass = data.list[i].weather[0].main.toLowerCase();
       
@@ -202,6 +199,29 @@
     });
   };
 
-  app.updateForecastCard(injectedForecast);
+  app.saveCities = function() {
+    window.localforage.setItem('SaveCities', app.selectedCities);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    window.localforage.getItem('SaveCities')
+    .then(function(cities) {
+      if(cities) {
+        app.selectedCities = cities;
+        app.selectedCities.forEach(function(city) {
+          app.getForecast(city.key, city.label);
+        });
+      } else {
+        app.updateForecastCard(injectedForecast);
+        app.selectedCities = [
+          { key: injectedForecast.key, label: injectedForecast.label }
+        ];
+        app.saveCities();
+      }
+    })
+    .catch(function(err) {
+      console.log(err);
+    })
+  });
 
 })();
