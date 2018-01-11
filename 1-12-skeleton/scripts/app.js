@@ -3,33 +3,55 @@
   'use strict';
 
   var injectedForecast = {
-    key: 'newyork',
+    key: 'new york',
     label: 'New York, NY',
-    currently: {
-      time: 1453489481,
-      summary: 'Clear',
-      icon: 'partly-cloudy-day',
-      temperature: 52.74,
-      apparentTemperature: 74.34,
-      precipProbability: 0.20,
+    list: [{
+      dt: 1515585600,
+      weather: [{ main: 'Clear', description: 'sky is clear' }],
+      temp: {day: 3, min: 3, max: 6},
+      rain: 0.20,
       humidity: 0.77,
-      windBearing: 125,
-      windSpeed: 1.52
+      deg: 125,
+      speed: 1.52
     },
-    daily: {
-      data: [
-        {icon: 'clear-day', temperatureMax: 55, temperatureMin: 34},
-        {icon: 'rain', temperatureMax: 55, temperatureMin: 34},
-        {icon: 'snow', temperatureMax: 55, temperatureMin: 34},
-        {icon: 'sleet', temperatureMax: 55, temperatureMin: 34},
-        {icon: 'fog', temperatureMax: 55, temperatureMin: 34},
-        {icon: 'wind', temperatureMax: 55, temperatureMin: 34},
-        {icon: 'partly-cloudy-day', temperatureMax: 55, temperatureMin: 34}
-      ]
+    {
+      temp: { day: 7., min: 7, max: 17.12 },
+      weather: [{ main: 'Rain' }]
+    },
+    {
+      temp: { day: 7., min: 7, max: 17.12 },
+      weather: [{ main: 'Clear' }]
+    },
+    {
+      temp: { day: 7., min: 7, max: 17.12 },
+      weather: [{ main: 'Snow' }]
+    },
+    {
+      temp: { day: 7., min: 7, max: 17.12 },
+      weather: [{ main: 'Clouds' }]
+    },
+    {
+      temp: { day: 7., min: 7, max: 17.12 },
+      weather: [{ main: 'Mist' }]
+    },
+    {
+      temp: { day: 7., min: 7, max: 17.12 },
+      weather: [{ main: 'Rain' }]
+    },
+    {
+      temp: { day: 7., min: 7, max: 17.12 },
+      weather: [{ main: 'Mist' }]
+    },
+    {
+      temp: { day: 7., min: 7, max: 17.12 },
+      weather: [{ main: 'Thunderstorm' }]
     }
+    ]
   };
 
-  var weatherAPIUrlBase = 'https://publicdata-weather.firebaseio.com/';
+  var weatherAPIUrlBase = 'http://api.openweathermap.org/data/2.5/forecast/daily?q=';
+  var dayCount = '&cnt=8&units=metric';
+  var appId = '&appid=';
 
   var app = {
     isLoading: true,
@@ -104,36 +126,39 @@
       app.container.appendChild(card);
       app.visibleCards[data.key] = card;
     }
-    card.querySelector('.description').textContent = data.currently.summary;
+    card.querySelector('.description').textContent = data.list[0].weather[0].description;
     card.querySelector('.date').textContent =
-      new Date(data.currently.time * 1000);
-    card.querySelector('.current .icon').classList.add(data.currently.icon);
+      new Date(data.list[0].dt * 1000);
+    card.querySelector('.current .icon').classList.add(data.list[0].weather[0].main.toLowerCase());
     card.querySelector('.current .temperature .value').textContent =
-      Math.round(data.currently.temperature);
+      Math.round(data.list[0].temp.day);
     card.querySelector('.current .feels-like .value').textContent =
-      Math.round(data.currently.apparentTemperature);
+      Math.round((data.list[0].temp.max + data.list[0].temp.min) / 2);
     card.querySelector('.current .precip').textContent =
-      Math.round(data.currently.precipProbability * 100) + '%';
+      data.list[0].rain ? data.list[0].rain + '%' : '';
     card.querySelector('.current .humidity').textContent =
-      Math.round(data.currently.humidity * 100) + '%';
+      data.list[0].humidity + '%';
     card.querySelector('.current .wind .value').textContent =
-      Math.round(data.currently.windSpeed);
+      Math.round(data.list[0].speed);
     card.querySelector('.current .wind .direction').textContent =
-      data.currently.windBearing;
+      data.list[0].deg;
+
     var nextDays = card.querySelectorAll('.future .oneday');
     var today = new Date();
     today = today.getDay();
-    for (var i = 0; i < 7; i++) {
-      var nextDay = nextDays[i];
-      var daily = data.daily.data[i];
-      if (daily && nextDay) {
+
+    for (var i = 1; i < 9; i++) {
+      var nextDay = nextDays[i-1];
+      var iconClass = data.list[i].weather[0].main.toLowerCase();
+      
+      if (nextDay) {
         nextDay.querySelector('.date').textContent =
-          app.daysOfWeek[(i + today) % 7];
-        nextDay.querySelector('.icon').classList.add(daily.icon);
+          app.daysOfWeek[(i-1 + today) % 7];
+        nextDay.querySelector('.icon').classList.add(iconClass);
         nextDay.querySelector('.temp-high .value').textContent =
-          Math.round(daily.temperatureMax);
+          Math.round(data.list[i].temp.max);
         nextDay.querySelector('.temp-low .value').textContent =
-          Math.round(daily.temperatureMin);
+        Math.round(data.list[i].temp.min);
       }
     }
     if (app.isLoading) {
@@ -152,7 +177,7 @@
 
   // Gets a forecast for a specific city and update the card with the data
   app.getForecast = function(key, label) {
-    var url = weatherAPIUrlBase + key + '.json';
+    var url = weatherAPIUrlBase + key + dayCount + appId;
     // Make the XHR to get the data, then update the card
     var request = new XMLHttpRequest();
     request.onreadystatechange = function() {
