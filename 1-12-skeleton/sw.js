@@ -1,4 +1,5 @@
-var cacheName = 'weatherPWA-v1';
+var cacheName = 'weatherPWA-v2';
+var dataCacheName = 'weatherData-v2';
 var swFiles = [
   'index.html',
   '/styles/ud811.css',
@@ -11,6 +12,8 @@ var swFiles = [
   '/images/snow.png',
   '/images/thunderstorm.png',
 ];
+
+var weatherAPIUrlBase = 'http://api.openweathermap.org/';
 
 self.addEventListener("install", function(e) {
   e.waitUntil(
@@ -26,7 +29,7 @@ self.addEventListener('activate', function(e) {
     caches.keys()
     .then(function(key) {
       return Promise.all(key.map(function(k) {
-        if(k !== cacheName) {
+        if(k !== cacheName && k !== dataCacheName) {
           return caches.delete(k);
         }
       }));
@@ -35,19 +38,24 @@ self.addEventListener('activate', function(e) {
 });
 
 self.addEventListener("fetch", function(e) {
-  e.respondWith(
-    caches.match(e.request)
-    .then(function(response) {
-      return response || fetch(e.request).then(function(resp) {
-        return caches.open(cacheName)
+  if (e.request.url.startsWith(weatherAPIUrlBase)) {
+    e.respondWith(
+      fetch(e.request)
+      .then(function(response) {
+        return caches.open(dataCacheName)
         .then(function(cache) {
-          cache.put(e.request, resp.clone());
-          return resp;
+          cache.put(e.request.url, response.clone());
+          return response;
         })
       })
-      .catch(function(err) {
-        return err;
+    );
+  } else {
+    e.respondWith(
+      caches.match(e.request)
+      .then(function(response) {
+        return response || fetch(e.request);
       })
-    })
-  );
+    );
+  }
+
 });

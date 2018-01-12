@@ -123,9 +123,16 @@
       app.container.appendChild(card);
       app.visibleCards[data.key] = card;
     }
+
+    // Verify data is newer than what we already have
+    var dateElem = document.querySelector('.date');
+    if (dateElem.getAttribute('data-dt') >= data.list[0].dt){
+      return;
+    }
+    dateElem.setAttribute('data-dt', data.list[0].dt);
+    dateElem.textContent = new Date(data.list[0].dt * 1000);
+
     card.querySelector('.description').textContent = data.list[0].weather[0].description;
-    card.querySelector('.date').textContent =
-      new Date(data.list[0].dt * 1000);
     card.querySelector('.current .icon').classList.add(data.list[0].weather[0].main.toLowerCase());
     card.querySelector('.current .temperature .value').textContent =
       Math.round(data.list[0].temp.day);
@@ -175,6 +182,20 @@
   // Gets a forecast for a specific city and update the card with the data
   app.getForecast = function(key, label) {
     var url = weatherAPIUrlBase + key + dayCount + appId;
+
+    if ('caches' in window) {
+      caches.match(url)
+      .then(function(response) {
+        if (response) {
+          response.json()
+          .then(function(json) {
+            json.key = key;
+            json.label = label;
+            app.updateForecastCard(json);
+          })
+        }
+      })
+    }
     // Make the XHR to get the data, then update the card
     var request = new XMLHttpRequest();
     request.onreadystatechange = function() {
