@@ -47,7 +47,7 @@
 
   var weatherAPIUrlBase = 'http://api.openweathermap.org/data/2.5/forecast/daily?q=';
   var dayCount = '&cnt=8&units=metric';
-  var appId = '&appid=1051546b60dcda58e3253c6ff3b96ba2';
+  var appId = '&appid=';
 
   var app = {
     isLoading: true,
