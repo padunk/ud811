@@ -303,7 +303,7 @@ body {
   .weather-forecast .icon.clouds {
     background-image: url("/images/cloudy.png"); }
   .weather-forecast .icon.thunderstorm {
-    background-image: url("/images/thunderstorms.png"); }
+    background-image: url("/images/thunderstorm.png"); }
 
 @media (max-width: 450px) {
   .weather-forecast .date, .weather-forecast .description {
